@@ -130,6 +130,10 @@ def load_config():
             "HOTNESS_WEIGHT": config_data["weight"]["hotness_weight"],
         },
         "PLATFORMS": config_data["platforms"],
+        # RSS 订阅源配置
+        "rss_sources": config_data.get("rss_sources", []),
+        # NewsAPI 配置
+        "newsapi": config_data.get("newsapi", {}),
     }
 
     # 通知渠道配置（环境变量优先）
@@ -664,7 +668,7 @@ def fetch_newsapi(newsapi_config: Dict) -> Dict:
 
     try:
         newsapi = NewsApiClient(api_key=api_key)
-        from_date = (datetime.now() - timedelta(days=days)).isoformat()
+        from_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
 
         # NewsAPI作为一个平台
         platform_id = "NewsAPI搜索"
