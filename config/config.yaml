@@ -25,11 +25,11 @@ crawler:
 
 # 推送模式选择
 report:
-  mode: "daily" # 可选: "daily"|"incremental"|"current"
-  rank_threshold: 5 # 排名高亮阈值
+  mode: "daily" # 使用 daily 模式，汇总多天的自动驾驶新闻
+  rank_threshold: 10 # 行业新闻排名可能不高，提高高亮阈值
 
 notification:
-  enable_notification: true # 是否启用通知功能，如果 false，则不发送手机通知
+  enable_notification: false # 关闭所有通知，使用 GitHub Pages 查看报告
   message_batch_size: 4000 # 消息分批大小（字节）(这个配置别动)
   dingtalk_batch_size: 20000 # 钉钉消息分批大小（字节）(这个配置也别动)
   feishu_batch_size: 29000 # 飞书消息分批大小（字节）
@@ -70,32 +70,49 @@ notification:
     ntfy_token: "" # ntfy访问令牌（可选，用于私有主题）
 
 # 用于让关注度更高的新闻在更前面显示，即用算法重新组合不同平台的热搜排序形成你侧重的热搜，合起来是 1 就行
+# 自动驾驶行业配置：更关注持续报道的新闻，降低排名权重
 weight:
-  rank_weight: 0.6 # 排名权重
-  frequency_weight: 0.3 # 频次权重
+  rank_weight: 0.4 # 排名权重（降低，行业新闻可能不在榜首）
+  frequency_weight: 0.5 # 频次权重（提高，持续报道更重要）
   hotness_weight: 0.1 # 热度权重
 
 # name 可以定义任意名称，只具有显示作用，即使项目运行了几天后，忽然改掉 name 也不会影响代码的正常运行
+# ========== 科技媒体（自动驾驶行业新闻源）==========
 platforms:
-  - id: "toutiao"
-    name: "今日头条"
-  - id: "baidu"
-    name: "百度热搜"
-  - id: "wallstreetcn-hot"
-    name: "华尔街见闻"
-  - id: "thepaper"
-    name: "澎湃新闻"
-  - id: "bilibili-hot-search"
-    name: "bilibili 热搜"
-  - id: "cls-hot"
-    name: "财联社热门"
-  - id: "ifeng"
-    name: "凤凰网"
-  - id: "tieba"
-    name: "贴吧"
-  - id: "weibo"
-    name: "微博"
-  - id: "douyin"
-    name: "抖音"
-  - id: "zhihu"
-    name: "知乎"
+  - id: "36kr"
+    name: "36氪"
+  - id: "ithome"
+    name: "IT之家"
+  - id: "huxiu"
+    name: "虎嗅"
+  - id: "geekpark"
+    name: "极客公园"
+  - id: "ifanr"
+    name: "爱范儿"
+
+# ========== RSS 订阅源（汽车垂直媒体）==========
+rss_sources:
+  - url: "https://auto.gasgoo.com/Rss/ClassRss.aspx?ClassId=601"
+    name: "盖世汽车-智能网联"
+  - url: "https://auto.gasgoo.com/Rss/ClassRss.aspx?ClassId=501"
+    name: "盖世汽车-新能源"
+  - url: "https://auto.gasgoo.com/Rss/ClassRss.aspx?ClassId=409"
+    name: "盖世汽车-新技术"
+  - url: "https://auto.gasgoo.com/Rss/ClassRss.aspx?ClassId=108"
+    name: "盖世汽车-行业"
+
+# ========== NewsAPI 配置（全网搜索补充）==========
+newsapi:
+  enabled: true
+  # API Key 从 https://newsapi.org/ 免费注册获取（100次/天）
+  # 建议使用 GitHub Secrets 中的 NEWSAPI_KEY 环境变量
+  api_key: ""  # 留空将从环境变量读取
+  keywords:
+    - "自动驾驶"
+    - "L4级自动驾驶"
+    - "robotaxi"
+    - "FSD"
+    - "智能驾驶"
+    - "无人驾驶"
+  days: 3  # 搜索最近3天的新闻
+  language: "zh"  # 中文新闻

@@ -11,13 +11,14 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.utils import formataddr, formatdate, make_msgid
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Union
 
 import pytz
 import requests
 import yaml
+import feedparser
 
 
 VERSION = "3.0.5"
@@ -550,6 +551,178 @@ class DataFetcher:
 
         print(f"成功: {list(results.keys())}, 失败: {failed_ids}")
         return results, id_to_name, failed_ids
+
+
+# === RSS 订阅源爬取 ===
+def fetch_rss_news(rss_config: Dict) -> Dict:
+    """
+    从 RSS 订阅源获取新闻
+
+    Args:
+        rss_config: RSS配置，包含 rss_sources 列表
+
+    Returns:
+        Dict: 格式与newsnow一致的新闻数据
+    """
+    results = {}
+    id_to_name = {}
+
+    rss_sources = rss_config.get("rss_sources", [])
+    if not rss_sources:
+        print("[RSS] 未配置RSS订阅源")
+        return results, id_to_name, []
+
+    print(f"[RSS] 开始爬取 {len(rss_sources)} 个RSS源...")
+
+    for source in rss_sources:
+        url = source.get("url")
+        name = source.get("name", "未命名RSS源")
+
+        if not url:
+            print(f"[RSS] 跳过无效配置: {name}")
+            continue
+
+        try:
+            print(f"[RSS] 正在爬取: {name}")
+            feed = feedparser.parse(url)
+
+            if feed.bozo:  # 解析错误
+                print(f"[RSS] {name} 解析失败: {feed.get('bozo_exception', '未知错误')}")
+                continue
+
+            # 使用name作为platform_id
+            platform_id = name
+            results[platform_id] = {}
+            id_to_name[platform_id] = name
+
+            # 处理RSS条目
+            for index, entry in enumerate(feed.entries[:50], 1):  # 取前50条
+                title = entry.get("title", "无标题")
+                url_link = entry.get("link", "")
+
+                # 模拟newsnow的数据格式
+                if title in results[platform_id]:
+                    results[platform_id][title]["ranks"].append(index)
+                else:
+                    results[platform_id][title] = {
+                        "ranks": [index],
+                        "url": url_link,
+                        "mobileUrl": url_link,
+                    }
+
+            print(f"[RSS] {name} 成功获取 {len(results[platform_id])} 条新闻")
+            time.sleep(1)  # 礼貌性延迟
+
+        except Exception as e:
+            print(f"[RSS] {name} 爬取失败: {e}")
+            continue
+
+    print(f"[RSS] 完成，共获取 {len(results)} 个RSS源数据")
+    return results, id_to_name, []
+
+
+# === NewsAPI 搜索 ===
+def fetch_newsapi(newsapi_config: Dict) -> Dict:
+    """
+    使用 NewsAPI 搜索新闻
+
+    Args:
+        newsapi_config: NewsAPI配置
+
+    Returns:
+        Dict: 格式与newsnow一致的新闻数据
+    """
+    results = {}
+    id_to_name = {}
+
+    if not newsapi_config.get("enabled", False):
+        print("[NewsAPI] 未启用")
+        return results, id_to_name, []
+
+    # 从环境变量或配置文件读取API Key
+    api_key = os.environ.get("NEWSAPI_KEY") or newsapi_config.get("api_key", "")
+
+    if not api_key:
+        print("[NewsAPI] 未配置API Key，跳过搜索")
+        return results, id_to_name, []
+
+    try:
+        from newsapi import NewsApiClient
+    except ImportError:
+        print("[NewsAPI] 未安装 newsapi-python 库，跳过搜索")
+        return results, id_to_name, []
+
+    keywords = newsapi_config.get("keywords", [])
+    days = newsapi_config.get("days", 3)
+    language = newsapi_config.get("language", "zh")
+
+    if not keywords:
+        print("[NewsAPI] 未配置搜索关键词")
+        return results, id_to_name, []
+
+    print(f"[NewsAPI] 开始搜索，关键词: {keywords}，最近 {days} 天")
+
+    try:
+        newsapi = NewsApiClient(api_key=api_key)
+        from_date = (datetime.now() - timedelta(days=days)).isoformat()
+
+        # NewsAPI作为一个平台
+        platform_id = "NewsAPI搜索"
+        results[platform_id] = {}
+        id_to_name[platform_id] = "NewsAPI搜索"
+
+        all_articles = []
+
+        for keyword in keywords:
+            try:
+                print(f"[NewsAPI] 搜索关键词: {keyword}")
+                response = newsapi.get_everything(
+                    q=keyword,
+                    language=language,
+                    sort_by='publishedAt',
+                    from_param=from_date,
+                    page_size=100  # 每个关键词最多100条
+                )
+
+                articles = response.get('articles', [])
+                all_articles.extend(articles)
+                print(f"[NewsAPI] {keyword} 找到 {len(articles)} 条新闻")
+                time.sleep(1)  # API限流保护
+
+            except Exception as e:
+                print(f"[NewsAPI] 搜索 {keyword} 失败: {e}")
+                continue
+
+        # 去重（相同title）
+        seen_titles = set()
+        unique_articles = []
+        for article in all_articles:
+            title = article.get('title', '')
+            if title and title not in seen_titles:
+                seen_titles.add(title)
+                unique_articles.append(article)
+
+        # 转换为统一格式
+        for index, article in enumerate(unique_articles[:50], 1):  # 最多取50条
+            title = article.get('title', '无标题')
+            url_link = article.get('url', '')
+
+            if title in results[platform_id]:
+                results[platform_id][title]["ranks"].append(index)
+            else:
+                results[platform_id][title] = {
+                    "ranks": [index],
+                    "url": url_link,
+                    "mobileUrl": url_link,
+                }
+
+        print(f"[NewsAPI] 完成，共获取 {len(results[platform_id])} 条去重后的新闻")
+
+    except Exception as e:
+        print(f"[NewsAPI] 搜索失败: {e}")
+        return {}, {}, []
+
+    return results, id_to_name, []
 
 
 # === 数据处理 ===
@@ -4380,7 +4553,7 @@ class NewsAnalyzer:
         print(f"运行模式: {mode_strategy['description']}")
 
     def _crawl_data(self) -> Tuple[Dict, Dict, List]:
-        """执行数据爬取"""
+        """执行数据爬取（包含 newsnow、RSS、NewsAPI）"""
         ids = []
         for platform in CONFIG["PLATFORMS"]:
             if "name" in platform:
@@ -4394,9 +4567,26 @@ class NewsAnalyzer:
         print(f"开始爬取数据，请求间隔 {self.request_interval} 毫秒")
         ensure_directory_exists("output")
 
+        # 1. 爬取 newsnow 平台数据
         results, id_to_name, failed_ids = self.data_fetcher.crawl_websites(
             ids, self.request_interval
         )
+
+        # 2. 爬取 RSS 订阅源
+        rss_results, rss_id_to_name, _ = fetch_rss_news(CONFIG)
+        if rss_results:
+            results.update(rss_results)
+            id_to_name.update(rss_id_to_name)
+            print(f"[合并] RSS数据已合并，新增 {len(rss_results)} 个平台")
+
+        # 3. 使用 NewsAPI 搜索
+        newsapi_config = CONFIG.get("newsapi", {})
+        if newsapi_config:
+            newsapi_results, newsapi_id_to_name, _ = fetch_newsapi(newsapi_config)
+            if newsapi_results:
+                results.update(newsapi_results)
+                id_to_name.update(newsapi_id_to_name)
+                print(f"[合并] NewsAPI数据已合并，新增 {len(newsapi_results)} 个平台")
 
         title_file = save_titles_to_file(results, id_to_name, failed_ids)
         print(f"标题已保存到: {title_file}")
