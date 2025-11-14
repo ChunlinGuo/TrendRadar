@@ -1,0 +1,62 @@
+正在加载配置...
+配置文件加载成功: config/config.yaml
+未配置任何通知渠道
+TrendRadar v3.0.5 配置加载完成
+监控平台数量: 5
+本地环境，未启用代理
+当前北京时间: 2025-11-14 17:18:00
+通知功能已禁用（ENABLE_NOTIFICATION=False），将只进行数据抓取
+报告模式: daily
+运行模式: 当日汇总模式（所有匹配新闻 + 新增新闻区域 + 按时推送）
+配置的监控平台: ['36氪', 'IT之家', '虎嗅', '极客公园', '爱范儿']
+开始爬取数据，请求间隔 1000 毫秒
+请求 36kr 失败: 500 Server Error: Internal Server Error for url: https://newsnow.busiyi.world/api/s?id=36kr&latest. 4.14秒后重试...
+请求 36kr 失败: 503 Server Error: Service Unavailable for url: https://newsnow.busiyi.world/api/s?id=36kr&latest. 6.17秒后重试...
+请求 36kr 失败: 500 Server Error: Internal Server Error for url: https://newsnow.busiyi.world/api/s?id=36kr&latest
+获取 ithome 成功（最新数据）
+请求 huxiu 失败: 500 Server Error: Internal Server Error for url: https://newsnow.busiyi.world/api/s?id=huxiu&latest. 4.37秒后重试...
+请求 huxiu 失败: 500 Server Error: Internal Server Error for url: https://newsnow.busiyi.world/api/s?id=huxiu&latest. 5.48秒后重试...
+请求 huxiu 失败: 500 Server Error: Internal Server Error for url: https://newsnow.busiyi.world/api/s?id=huxiu&latest
+请求 geekpark 失败: 500 Server Error: Internal Server Error for url: https://newsnow.busiyi.world/api/s?id=geekpark&latest. 4.22秒后重试...
+请求 geekpark 失败: 500 Server Error: Internal Server Error for url: https://newsnow.busiyi.world/api/s?id=geekpark&latest. 5.35秒后重试...
+请求 geekpark 失败: 500 Server Error: Internal Server Error for url: https://newsnow.busiyi.world/api/s?id=geekpark&latest
+请求 ifanr 失败: 503 Server Error: Service Unavailable for url: https://newsnow.busiyi.world/api/s?id=ifanr&latest. 4.68秒后重试...
+请求 ifanr 失败: 500 Server Error: Internal Server Error for url: https://newsnow.busiyi.world/api/s?id=ifanr&latest. 6.36秒后重试...
+请求 ifanr 失败: 500 Server Error: Internal Server Error for url: https://newsnow.busiyi.world/api/s?id=ifanr&latest
+成功: ['ithome'], 失败: ['36kr', 'huxiu', 'geekpark', 'ifanr']
+[RSS] 开始爬取 4 个RSS源...
+[RSS] 正在爬取: 盖世汽车-智能网联
+[RSS] 盖世汽车-智能网联 成功获取 50 条新闻
+[RSS] 正在爬取: 盖世汽车-新能源
+[RSS] 盖世汽车-新能源 成功获取 50 条新闻
+[RSS] 正在爬取: 盖世汽车-新技术
+[RSS] 盖世汽车-新技术 成功获取 50 条新闻
+[RSS] 正在爬取: 盖世汽车-行业
+[RSS] 盖世汽车-行业 成功获取 50 条新闻
+[RSS] 完成，共获取 4 个RSS源数据
+[合并] RSS数据已合并，新增 4 个平台
+[NewsAPI] 开始搜索，关键词: ['自动驾驶', 'L4级自动驾驶', 'robotaxi', 'FSD', '智能驾驶', '无人驾驶']，最近 3 天
+[NewsAPI] 搜索关键词: 自动驾驶
+[NewsAPI] 自动驾驶 找到 21 条新闻
+[NewsAPI] 搜索关键词: L4级自动驾驶
+[NewsAPI] L4级自动驾驶 找到 0 条新闻
+[NewsAPI] 搜索关键词: robotaxi
+[NewsAPI] robotaxi 找到 5 条新闻
+[NewsAPI] 搜索关键词: FSD
+[NewsAPI] FSD 找到 2 条新闻
+[NewsAPI] 搜索关键词: 智能驾驶
+[NewsAPI] 智能驾驶 找到 14 条新闻
+[NewsAPI] 搜索关键词: 无人驾驶
+[NewsAPI] 无人驾驶 找到 11 条新闻
+[NewsAPI] 完成，共获取 30 条去重后的新闻
+[合并] NewsAPI数据已合并，新增 1 个平台
+标题已保存到: output/2025年11月14日/txt/17时19分.txt
+当日汇总模式：处理 260 条新闻，模式：频率词过滤
+HTML报告已生成: output/2025年11月14日/html/17时19分.html
+生成当日汇总报告...
+当前监控平台: ['36kr', 'ithome', 'huxiu', 'geekpark', 'ifanr']
+读取到 33 个标题（已按当前监控平台过滤）
+当日汇总模式：处理 33 条新闻，模式：频率词过滤
+当日汇总报告已生成: output/2025年11月14日/html/当日汇总.html
+跳过当日汇总通知：通知功能已禁用
+汇总报告已生成（Docker环境）: output/2025年11月14日/html/当日汇总.html
